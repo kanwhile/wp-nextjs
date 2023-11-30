@@ -7,10 +7,11 @@ import Intro from '../components/intro';
 import Layout from '../components/layout';
 import { getAllPostsForHome } from '../lib/api';
 import { SITE_NAME } from '../lib/constants';
+import Link from 'next/link';
 
-export default function Index({ allPosts: { edges }, preview }) {
-  const hero = edges[0]?.node;
-  const morePosts = edges.slice(1);
+export default function Index({ allPosts, preview }) {
+  const morePosts = allPosts;
+  console.log(preview);
 
   return (
     <Layout preview={preview}>
@@ -19,18 +20,22 @@ export default function Index({ allPosts: { edges }, preview }) {
       </Head>
       <Container>
         <Intro />
-        {hero && <Hero title={hero.title} thumbnail={hero.featuredImage} date={hero.date} author={hero.author} slug={hero.slug} excerpt={hero.excerpt} />}
-        {morePosts.length > 0 && <MoreStories posts={morePosts} />}
+        { morePosts.map((item) => (
+          <Link href={`/posts/${item.slug}`} >
+            {item.title.rendered}
+            </Link>
+        ))}
       </Container>
     </Layout>
   );
 }
 
 export const getStaticProps: GetStaticProps = async ({ preview = false }) => {
-  const allPosts = await getAllPostsForHome(preview);
-
-  return {
-    props: { allPosts, preview },
+  const variableName = await fetch('https://gun.todsorb.dev/wp-json/wp/v2/posts?_embed&order=desc&per_page=100&status=publish')
+   const allPosts = await variableName.json()
+   console.log(allPosts)
+   return {
+    props: { allPosts ,preview},
     revalidate: 10,
-  };
+   }
 };
